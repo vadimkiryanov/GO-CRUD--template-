@@ -9,11 +9,7 @@ import (
 // таблицы экспортируется в рамках пакета repository
 // названия таблиц такие же, как в файлах миграций
 const (
-	usersTable      = "users"
-	todoListsTable  = "todo_lists"
-	usersListsTable = "users_lists"
-	todoItemsTable  = "todo_items"
-	listsItemsTable = "lists_items"
+	examplesTable = "examples"
 )
 
 type Config struct {
