@@ -9,7 +9,7 @@ import (
 // таблицы экспортируется в рамках пакета repository
 // названия таблиц такие же, как в файлах миграций
 const (
-	examplesTable = "examples"
+	examplesTable = "example"
 )
 
 type Config struct {

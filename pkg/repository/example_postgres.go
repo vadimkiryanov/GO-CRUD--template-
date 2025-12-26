@@ -25,11 +25,11 @@ func (repository *ExamplePostgres) CreateElement(element schema.ExampleSchema) (
 
 	// Формируем SQL запрос для вставки данных
 	// $1, $2, $3 - это параметры, которые будут безопасно подставлены
-	query := fmt.Sprintf("INSERT INTO %s (name) VALUES ($1) RETURNING id", examplesTable)
+	query := fmt.Sprintf("INSERT INTO %s (name, email, password) VALUES ($1, $2, $3) RETURNING id", examplesTable)
 
 	// Выполняем запрос с данными пользователя
 	// QueryRow используется, так как мы ожидаем только одну строку в ответе
-	row := repository.db.QueryRow(query, element.Name)
+	row := repository.db.QueryRow(query, element.Name, element.Email, element.Password)
 
 	// Пытаемся получить ID созданного пользователя
 	// Если произошла ошибка (например, дубликат username), возвращаем её
@@ -46,7 +46,7 @@ func (repos *ExamplePostgres) GetElement(name string) (schema.ExampleSchema, err
 	var exampleFromDb schema.ExampleSchema
 
 	// Формируем SQL запрос
-	query := fmt.Sprintf("SELECT id FROM %s WHERE name=$1", examplesTable)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE name=$1", examplesTable)
 	err := repos.db.Get(&exampleFromDb, query, name)
 
 	return exampleFromDb, err // Возвращаем полученного пользователя и возможную ошибку

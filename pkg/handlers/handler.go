@@ -19,12 +19,14 @@ func (handler *Handler) testPing(ctx *gin.Context) {
 }
 
 // Инициализация роутеров
+
 func (h *Handler) InitRouters() *gin.Engine {
 	router := gin.New() // создание роутера
 
 	auth := router.Group("/test")
 	{
-		auth.POST("/second-level", h.testPing) // создание второго уровня роутера
+		auth.GET("/element/:name", h.GetElement)
+		auth.POST("/element", h.CreateElement)
 	}
 
 	return router
