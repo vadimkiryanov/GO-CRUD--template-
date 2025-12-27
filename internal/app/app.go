@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/vadimkiryanov/GO-CRUD/internal/core/server"
 	"github.com/vadimkiryanov/GO-CRUD/internal/features/auth"
-	"github.com/vadimkiryanov/GO-CRUD/internal/server"
 )
 
 type App struct {
