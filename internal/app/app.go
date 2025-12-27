@@ -15,7 +15,7 @@ func New(db *sqlx.DB) (*App, error) {
 	srv := server.NewServer()
 
 	// Инициализация зависимостей auth
-	authRepo := auth.NewAuthRepository(db)
+	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 

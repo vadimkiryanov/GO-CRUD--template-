@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
 	"github.com/vadimkiryanov/GO-CRUD/internal/app"
-	"github.com/vadimkiryanov/GO-CRUD/internal/repository"
+	"github.com/vadimkiryanov/GO-CRUD/internal/core/db"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	}
 
 	// Создание подключения к базе данных
-	db, err := repository.NewPostgresDB(repository.Config{
+	db, err := db.NewDB(db.Config{
 		Host:     viper.GetString("db.host"),     // получение хоста из конфига
 		Port:     viper.GetString("db.port"),     // получение порта из конфига
 		Username: viper.GetString("db.username"), // получение имени пользователя из конфига

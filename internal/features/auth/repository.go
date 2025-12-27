@@ -18,7 +18,7 @@ type AuthPostgres struct {
 
 // NewAuthPostgres создает новый экземпляр структуры AuthPostgres
 // db - это соединение с базой данных PostgreSQL
-func NewAuthRepository(db *sqlx.DB) *AuthPostgres {
+func NewRepository(db *sqlx.DB) *AuthPostgres {
 	// Возвращаем новый экземпляр AuthPostgres с установленным соединением к базе данных
 	return &AuthPostgres{db: db}
 }

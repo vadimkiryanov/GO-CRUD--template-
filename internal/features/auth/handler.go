@@ -18,16 +18,6 @@ func NewHandler(services *AuthService) *Handler {
 	return &Handler{services: services}
 }
 
-// // RegisterRoutes регистрирует маршруты аутентификации
-// func (h *Handler) RegisterRoutes(router *gin.Engine) {
-//     // Группа маршрутов для аутентификации
-//     authGroup := router.Group("/auth")
-//     {
-//         authGroup.POST("/register", h.signUp)
-//         authGroup.POST("/login", h.signIn)
-//     }
-// }
-
 // Инициализация роутеров
 func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
 	// router := gin.New() // создание роутера
