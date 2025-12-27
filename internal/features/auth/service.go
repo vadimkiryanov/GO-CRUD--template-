@@ -1,4 +1,4 @@
-package service
+package auth
 
 import (
 	"crypto/sha1"
@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/vadimkiryanov/GO-CRUD/internal/repository"
-	"github.com/vadimkiryanov/GO-CRUD/schema"
 )
 
 const (
@@ -23,13 +21,18 @@ type tokenClaims struct {
 	UserId int `json:"user_id"`
 }
 
+type Repository interface {
+	CreateUser(user User) (int, error)
+	GetUser(username, password string) (User, error)
+}
+
 // AuthService структура для работы с аутентификацией
 type AuthService struct {
-	repository repository.Authorization // Интерфейс для работы с хранилищем данных
+	repository Repository // Интерфейс для работы с хранилищем данных
 }
 
 // NewAuthService создает новый экземпляр сервиса аутентификации
-func NewAuthService(repository repository.Authorization) *AuthService {
+func NewService(repository Repository) *AuthService {
 	return &AuthService{repository: repository}
 }
 
@@ -67,7 +70,7 @@ func (service *AuthService) ParseToken(accsessToken string) (idUser int, err err
 }
 
 // CreateUser создает нового пользователя
-func (service *AuthService) CreateUser(user schema.User) (int, error) {
+func (service *AuthService) CreateUser(user User) (int, error) {
 	// Генерируем хеш пароля перед сохранением
 	user.Password = generatePasswordHash(user.Password)
 	// Делегируем создание пользователя репозиторию

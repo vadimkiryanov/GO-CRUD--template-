@@ -1,0 +1,111 @@
+package auth
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/vadimkiryanov/GO-CRUD/internal/core/errors"
+)
+
+type Handler struct {
+	services *AuthService
+}
+
+// Инициализация обработчиков
+func NewHandler(services *AuthService) *Handler {
+	return &Handler{services: services}
+}
+
+// // RegisterRoutes регистрирует маршруты аутентификации
+// func (h *Handler) RegisterRoutes(router *gin.Engine) {
+//     // Группа маршрутов для аутентификации
+//     authGroup := router.Group("/auth")
+//     {
+//         authGroup.POST("/register", h.signUp)
+//         authGroup.POST("/login", h.signIn)
+//     }
+// }
+
+// Инициализация роутеров
+func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
+	// router := gin.New() // создание роутера
+
+	// ❌ ВРЕМЕННО ДЛЯ DEV (удалите в проде)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
+
+	auth := router.Group("/auth")
+	{
+		auth.POST("/sign-up", h.signUp) // регистрация
+		auth.POST("/sign-in", h.signIn) // авторизация
+	}
+
+	return router
+}
+
+// signUp обрабатывает регистрацию пользователя путем привязки JSON-данных к структуре User.
+// Возвращает ответ с ошибкой bad request, если привязка JSON не удалась.
+func (handler *Handler) signUp(ctx *gin.Context) {
+	// Когда пользователь отправляет запрос на регистрацию:
+	var input User // Создается пустая структура для данных пользователя
+
+	// Пытаемся прочитать JSON из запроса и записать в структуру input todo.User
+	if err := ctx.BindJSON(&input); err != nil {
+		errors.NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Пытаемся создать пользователя через сервисный слой
+	_, err := handler.services.CreateUser(input)
+	if err != nil {
+		fmt.Println(err)
+		errors.NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	token, err := handler.services.GenerateToken(input.Username, input.Password)
+	if err != nil {
+		fmt.Println(err)
+		errors.NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Отправляем успешный ответ (200) с ID созданного пользователя
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"token": token,
+	})
+}
+
+type signInInput struct {
+	Username string `json:"username" binding:"required"` // binding:"required" - это означает что...
+	Password string `json:"password" binding:"required"` // ...это поле является обязательным
+
+}
+
+func (handler *Handler) signIn(ctx *gin.Context) {
+	var input signInInput
+
+	// Пытаемся прочитать JSON из запроса и записать в структуру input
+	if err := ctx.BindJSON(&input); err != nil {
+		errors.NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Пытаемся создать токен через сервисный слой
+	token, err := handler.services.GenerateToken(input.Username, input.Password)
+	if err != nil {
+		errors.NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Отправляем успешный ответ (200)
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"token": token,
+	})
+}

@@ -1,4 +1,4 @@
-package schema
+package auth
 
 type User struct {
 	// json:"-" - означает, что поле будет пропущено при JSON сериализации

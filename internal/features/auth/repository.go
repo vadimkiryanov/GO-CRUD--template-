@@ -1,10 +1,15 @@
-package repository
+package auth
 
 import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/vadimkiryanov/GO-CRUD/schema"
+)
+
+// таблицы экспортируется в рамках пакета repository
+// названия таблиц такие же, как в файлах миграций
+const (
+	usersTable = "users"
 )
 
 type AuthPostgres struct {
@@ -13,13 +18,13 @@ type AuthPostgres struct {
 
 // NewAuthPostgres создает новый экземпляр структуры AuthPostgres
 // db - это соединение с базой данных PostgreSQL
-func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
+func NewAuthRepository(db *sqlx.DB) *AuthPostgres {
 	// Возвращаем новый экземпляр AuthPostgres с установленным соединением к базе данных
 	return &AuthPostgres{db: db}
 }
 
 // Создает нового пользователя в базе данных
-func (repository *AuthPostgres) CreateUser(user schema.User) (int, error) {
+func (repository *AuthPostgres) CreateUser(user User) (int, error) {
 	// Переменная для хранения ID нового пользователя
 	var id int
 
@@ -42,8 +47,8 @@ func (repository *AuthPostgres) CreateUser(user schema.User) (int, error) {
 }
 
 // Получает пользователя из базы данных по его username и паролю
-func (repos *AuthPostgres) GetUser(username, password string) (schema.User, error) {
-	var userFromDb schema.User
+func (repos *AuthPostgres) GetUser(username, password string) (User, error) {
+	var userFromDb User
 
 	// Формируем SQL запрос
 	query := fmt.Sprintf("SELECT id FROM %s WHERE username=$1 AND password_hash=$2", usersTable)

@@ -1,4 +1,4 @@
-package handlers
+package errors
 
 import (
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ type statusResponse struct {
 }
 
 // Это помощник для отправки сообщений об ошибках
-func newErrorResponse(ctx *gin.Context, statusCode int, message string) {
+func NewErrorResponse(ctx *gin.Context, statusCode int, message string) {
 	logrus.Error(message)
 	ctx.AbortWithStatusJSON(statusCode, errorResponse{message})
 }

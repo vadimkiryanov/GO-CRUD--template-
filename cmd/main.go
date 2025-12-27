@@ -7,10 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
-	"github.com/vadimkiryanov/GO-CRUD/internal/api"
-	"github.com/vadimkiryanov/GO-CRUD/internal/handlers"
+	"github.com/vadimkiryanov/GO-CRUD/internal/app"
 	"github.com/vadimkiryanov/GO-CRUD/internal/repository"
-	"github.com/vadimkiryanov/GO-CRUD/internal/service"
 )
 
 func main() {
@@ -43,18 +41,21 @@ func main() {
 		logrus.Fatalf("error initializing db: [%s]\n", err)
 	}
 
-	var server = new(api.Server) // Создание сервера
+	application, err := app.New(db)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
-	var repos = repository.NewRepository(db)     // Создание репозитория
-	var services = service.NewService(repos)     // Создание сервиса
-	var handlers = handlers.NewHandler(services) // Создание обработчика
+	if err := application.Run(); err != nil {
+		logrus.Fatal(err)
+	}
 
 	// Сервер запущен
 	logrus.Info("Server started on port: ", viper.GetString("port"))
 
 	// Запуск сервера
 	// если для viper.GetString key == неверное значение, то запустятся дефолтные настройки
-	if err := server.Run(viper.GetString("port"), handlers.InitRouters()); err != nil {
+	if err := application.Run(); err != nil {
 		logrus.Fatalf("error occured while running http server: %s", err.Error())
 	}
 
