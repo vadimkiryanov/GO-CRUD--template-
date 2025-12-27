@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS example; -- удаляется таблица example
+DROP TABLE IF EXISTS users;

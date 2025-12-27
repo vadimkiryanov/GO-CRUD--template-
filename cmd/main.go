@@ -7,10 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
-	todo "github.com/vadimkiryanov/GO-CRUD"
-	"github.com/vadimkiryanov/GO-CRUD/pkg/handlers"
-	"github.com/vadimkiryanov/GO-CRUD/pkg/repository"
-	"github.com/vadimkiryanov/GO-CRUD/pkg/service"
+	"github.com/vadimkiryanov/GO-CRUD/internal/api"
+	"github.com/vadimkiryanov/GO-CRUD/internal/handlers"
+	"github.com/vadimkiryanov/GO-CRUD/internal/repository"
+	"github.com/vadimkiryanov/GO-CRUD/internal/service"
 )
 
 func main() {
@@ -43,23 +43,27 @@ func main() {
 		logrus.Fatalf("error initializing db: [%s]\n", err)
 	}
 
-	var server = new(todo.Server) // Создание сервера
+	var server = new(api.Server) // Создание сервера
 
 	var repos = repository.NewRepository(db)     // Создание репозитория
 	var services = service.NewService(repos)     // Создание сервиса
 	var handlers = handlers.NewHandler(services) // Создание обработчика
+
+	// Сервер запущен
+	logrus.Info("Server started on port: ", viper.GetString("port"))
 
 	// Запуск сервера
 	// если для viper.GetString key == неверное значение, то запустятся дефолтные настройки
 	if err := server.Run(viper.GetString("port"), handlers.InitRouters()); err != nil {
 		logrus.Fatalf("error occured while running http server: %s", err.Error())
 	}
+
 }
 
 // initConfig инициализация конфига
 func initConfig() error {
 	viper.AddConfigPath("configs") // Папка с конфигами configs/
-	viper.SetConfigName("config") // Имя файла с конфигами configs/config.yaml
+	viper.SetConfigName("config")  // Имя файла с конфигами configs/config.yaml
 
 	return viper.ReadInConfig() // Чтение конфига
 

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/vadimkiryanov/GO-CRUD/pkg/repository"
+	"github.com/vadimkiryanov/GO-CRUD/internal/repository"
 	"github.com/vadimkiryanov/GO-CRUD/schema"
 )
 

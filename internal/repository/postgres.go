@@ -10,6 +10,7 @@ import (
 // названия таблиц такие же, как в файлах миграций
 const (
 	examplesTable = "example"
+	usersTable    = "users"
 )
 
 type Config struct {
