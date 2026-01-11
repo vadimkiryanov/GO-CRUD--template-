@@ -1,14 +1,11 @@
 package main
 
 import (
-	"os"
-
 	_ "github.com/lib/pq" // Библиотека для работы с postgres, driver
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
 	"github.com/vadimkiryanov/GO-CRUD/internal/app"
-	"github.com/vadimkiryanov/GO-CRUD/internal/core/db"
 )
 
 func main() {
@@ -25,23 +22,7 @@ func main() {
 		logrus.Fatalf("error loading env variables: [%s]\n", err)
 	}
 
-	// Создание подключения к базе данных
-	db, err := db.NewDB(db.Config{
-		Host:     viper.GetString("db.host"),     // получение хоста из конфига
-		Port:     viper.GetString("db.port"),     // получение порта из конфига
-		Username: viper.GetString("db.username"), // получение имени пользователя из конфига
-		DBName:   viper.GetString("db.dbname"),   // получение имени базы данных из конфига
-		SSLMode:  viper.GetString("db.sslmode"),  // получение режима SSL из конфига
-
-		Password: os.Getenv("DB_PASSWORD"), // получение пароля из переменных окружения
-	})
-
-	// Проверка подключения
-	if err != nil {
-		logrus.Fatalf("error initializing db: [%s]\n", err)
-	}
-
-	application, err := app.New(db)
+	application, err := app.New()
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -51,12 +32,12 @@ func main() {
 	}
 
 	// Сервер запущен
-	logrus.Info("Server started on port: ", viper.GetString("port"))
+	logrus.Info("Сервер запущен на порту: ", viper.GetString("port"))
 
 	// Запуск сервера
 	// если для viper.GetString key == неверное значение, то запустятся дефолтные настройки
 	if err := application.Run(); err != nil {
-		logrus.Fatalf("error occured while running http server: %s", err.Error())
+		logrus.Fatalf("ошибка при запуске сервера: %s", err.Error())
 	}
 
 }

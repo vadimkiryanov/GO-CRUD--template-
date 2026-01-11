@@ -1,7 +1,11 @@
 package app
 
 import (
-	"github.com/jmoiron/sqlx"
+	"os"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"github.com/vadimkiryanov/GO-CRUD/internal/core/db"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core/server"
 	"github.com/vadimkiryanov/GO-CRUD/internal/features/auth"
 )
@@ -10,9 +14,25 @@ type App struct {
 	server *server.Server
 }
 
-func New(db *sqlx.DB) (*App, error) {
+func New() (*App, error) {
 	// Создание сервера
 	srv := server.NewServer()
+
+	// Создание подключения к базе данных
+	db, err := db.NewDB(db.Config{
+		Host:     viper.GetString("db.host"),     // получение хоста из конфига
+		Port:     viper.GetString("db.port"),     // получение порта из конфига
+		Username: viper.GetString("db.username"), // получение имени пользователя из конфига
+		DBName:   viper.GetString("db.dbname"),   // получение имени базы данных из конфига
+		SSLMode:  viper.GetString("db.sslmode"),  // получение режима SSL из конфига
+
+		Password: os.Getenv("DB_PASSWORD"), // получение пароля из переменных окружения
+	})
+
+	// Проверка подключения
+	if err != nil {
+		logrus.Fatalf("ошибка при подключении к базе данных: [%s]\n", err)
+	}
 
 	// Инициализация зависимостей auth
 	authRepo := auth.NewRepository(db)
