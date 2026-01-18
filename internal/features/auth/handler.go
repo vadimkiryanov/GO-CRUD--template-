@@ -72,13 +72,12 @@ func (handler *Handler) signUp(ctx *gin.Context) {
 	})
 }
 
-type signInInput struct {
-	Username string `json:"username" binding:"required"` // binding:"required" - это означает что...
-	Password string `json:"password" binding:"required"` // ...это поле является обязательным
-
-}
-
 func (handler *Handler) signIn(ctx *gin.Context) {
+	type signInInput struct {
+		Username string `json:"username" binding:"required"` // binding:"required" - это означает что...
+		Password string `json:"password" binding:"required"` // ...это поле является обязательным
+	}
+
 	var input signInInput
 
 	// Пытаемся прочитать JSON из запроса и записать в структуру input
@@ -96,6 +95,7 @@ func (handler *Handler) signIn(ctx *gin.Context) {
 
 	// Отправляем успешный ответ (200)
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"token":    token,
+		"username": input.Username,
 	})
 }

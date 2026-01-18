@@ -8,6 +8,10 @@ import (
 	"github.com/vadimkiryanov/GO-CRUD/internal/core/db"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core/server"
 	"github.com/vadimkiryanov/GO-CRUD/internal/features/auth"
+
+	postsR "github.com/vadimkiryanov/GO-CRUD/internal/features/posts/repository"
+	postsS "github.com/vadimkiryanov/GO-CRUD/internal/features/posts/service"
+	postsT "github.com/vadimkiryanov/GO-CRUD/internal/features/posts/transport"
 )
 
 type App struct {
@@ -39,8 +43,13 @@ func New() (*App, error) {
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 
+	postsRepo := postsR.NewRepository(db)
+	postsService := postsS.NewService(postsRepo)
+	postsHandler := postsT.NewHandler(postsService)
+
 	// Регистрация маршрутов
 	authHandler.InitRouters(srv.Router())
+	postsHandler.InitRouters(srv.Router())
 
 	return &App{
 		server: srv,

@@ -14,12 +14,12 @@ func main() {
 
 	// Инициализация конфига
 	if err := initConfig(); err != nil {
-		logrus.Fatalf("error initializing configs: [%s]\n", err)
+		logrus.Fatalf("ошибка при инициализации конфига: [%s]\n", err)
 	}
 
 	// Инициализация переменных окружения
 	if err := gotenv.Load(); err != nil {
-		logrus.Fatalf("error loading env variables: [%s]\n", err)
+		logrus.Fatalf("ошибка при загрузке переменных окружения: [%s]\n", err)
 	}
 
 	application, err := app.New()
