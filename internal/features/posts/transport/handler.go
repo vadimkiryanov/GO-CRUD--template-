@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,8 +22,9 @@ func NewHandler(services *service.PostsService) *Handler {
 func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
 	auth := router.Group("/posts")
 	{
-		auth.GET("/all", h.getAllPosts)    // получение всех постов
-		auth.POST("/create", h.createPost) // получение всех постов
+		auth.GET("/all", h.getAllPosts)          // получение всех постов
+		auth.POST("/create", h.createPost)       // создание поста
+		auth.DELETE("/delete/:id", h.deletePost) // удаление поста
 	}
 
 	return router
@@ -72,4 +74,36 @@ func (handler *Handler) createPost(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"id": id})
 
+}
+
+func (handler *Handler) deletePost(ctx *gin.Context) {
+	userId, _, err := core.ParseToken(ctx.GetHeader("Authorization"))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	postId := ctx.Param("id")
+
+	// Валидация параметра ID
+	if postId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "post id is required"})
+		return
+	}
+
+	var id int
+	_, err = fmt.Sscanf(postId, "%d", &id)
+	if err != nil || id <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid post id"})
+		return
+	}
+
+	err = handler.services.DeletePost(id, userId)
+	if err != nil {
+		// Возвращаем 404 если пост не найден или 403 если у пользователя нет доступа к этому посту
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "post not found or access denied"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "post deleted"})
 }

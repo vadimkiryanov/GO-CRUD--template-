@@ -21,6 +21,7 @@ type PostsPostgres struct {
 type PostsRepository interface {
 	CreatePost(post domains.PostsDomain) (int, error)
 	GetPosts(userId int) ([]PostModel, error)
+	DeletePost(postId int, userId int) error
 }
 
 // NewPostsPostgres создает новый экземпляр структуры PostsPostgres
@@ -85,4 +86,10 @@ func (repository *PostsPostgres) GetPosts(userId int) ([]PostModel, error) {
 	err := repository.db.Select(&posts, query, userId)
 	// Возвращаем список постов и nil как ошибку
 	return posts, err
+}
+
+func (repository *PostsPostgres) DeletePost(postId int, userId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1 AND user_id = $2", postsTable)
+	_, err := repository.db.Exec(query, postId, userId)
+	return err
 }
