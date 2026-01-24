@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core/db"
+	"github.com/vadimkiryanov/GO-CRUD/internal/core/handlers"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core/server"
 	"github.com/vadimkiryanov/GO-CRUD/internal/features/auth"
 
@@ -43,11 +44,15 @@ func New() (*App, error) {
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 
+	// Инициализация зависимостей posts
 	postsRepo := postsR.NewRepository(db)
 	postsService := postsS.NewService(postsRepo)
 	postsHandler := postsT.NewHandler(postsService)
 
 	// Регистрация маршрутов
+	// Инициализация конфига роутера
+	handlers.ConfigInit(srv.Router())
+
 	authHandler.InitRouters(srv.Router())
 	postsHandler.InitRouters(srv.Router())
 
