@@ -24,3 +24,7 @@ func (service *PostsService) GetPosts(userId int) ([]repository.PostModel, error
 func (service *PostsService) DeletePost(postId int, userId int) error {
 	return service.repository.DeletePost(postId, userId)
 }
+
+func (service *PostsService) UpdatePost(postId int, userId int, post domains.PostsDomain) error {
+	return service.repository.UpdatePost(postId, userId, post)
+}

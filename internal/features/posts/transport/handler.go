@@ -24,6 +24,7 @@ func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
 	{
 		auth.GET("/all", h.getAllPosts)          // получение всех постов
 		auth.POST("/create", h.createPost)       // создание поста
+		auth.PUT("/update/:id", h.updatePost)    // обновление поста
 		auth.DELETE("/delete/:id", h.deletePost) // удаление поста
 	}
 
@@ -106,4 +107,44 @@ func (handler *Handler) deletePost(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "post deleted"})
+}
+
+func (handler *Handler) updatePost(ctx *gin.Context) {
+	userId, _, err := core.ParseToken(ctx.GetHeader("Authorization"))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	postId := ctx.Param("id")
+
+	// Валидация параметра ID
+	if postId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "post id is required"})
+		return
+	}
+
+	var id int
+	_, err = fmt.Sscanf(postId, "%d", &id)
+	if err != nil || id <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid post id"})
+		return
+	}
+
+	var input PostsDto
+	if err := ctx.BindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Убедимся, что пользователь обновляет только свои посты
+	input.UserId = userId
+
+	err = handler.services.UpdatePost(id, userId, input)
+	if err != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "post not found or access denied"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "post updated"})
 }
