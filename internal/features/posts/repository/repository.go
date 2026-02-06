@@ -20,7 +20,8 @@ type PostsPostgres struct {
 
 type PostsRepository interface {
 	CreatePost(post domains.PostsDomain) (int, error)
-	GetPosts(userId int) ([]PostModel, error)
+	GetMyPosts(userId int) ([]PostModel, error)
+	GetAllPosts() ([]PostModel, error)
 	DeletePost(postId int, userId int) error
 	UpdatePost(postId int, userId int, post domains.PostsDomain) error
 }
@@ -63,28 +64,54 @@ func (repository *PostsPostgres) CreatePost(post domains.PostsDomain) (int, erro
 }
 
 // Получает все посты пользователя из базы данных
-func (repository *PostsPostgres) GetPosts(userId int) ([]PostModel, error) {
+func (repository *PostsPostgres) GetMyPosts(userId int) ([]PostModel, error) {
 	// Переменная для хранения списка постов
 	var posts []PostModel
 
 	// Формируем SQL запрос для получения всех постов пользователя
 	// JOIN с users для получения имени автора
 	query := fmt.Sprintf(`
-        SELECT 
-            p.id, 
-            p.user_id, 
+        SELECT
+            p.id,
+            p.user_id,
             u.username as author,  -- <-- имя пользователя из users.username
-            p.title, 
-            p.description, 
-            p.created_at, 
-            p.updated_at 
-        FROM %s p 
-        JOIN users u ON p.user_id = u.id 
+            p.title,
+            p.description,
+            p.created_at,
+            p.updated_at
+        FROM %s p
+        JOIN users u ON p.user_id = u.id
         WHERE p.user_id = $1`, postsTable)
 
 	// Выполняем запрос с данными пользователя
 	// Queryx используется, так как мы ожидаем несколько строк в ответе
 	err := repository.db.Select(&posts, query, userId)
+	// Возвращаем список постов и nil как ошибку
+	return posts, err
+}
+
+// Получает все посты из базы данных (без фильтрации по пользователю)
+func (repository *PostsPostgres) GetAllPosts() ([]PostModel, error) {
+	// Переменная для хранения списка постов
+	var posts []PostModel
+
+	// Формируем SQL запрос для получения всех постов
+	// JOIN с users для получения имени автора
+	query := fmt.Sprintf(`
+        SELECT
+            p.id,
+            p.user_id,
+            u.username as author,  -- <-- имя пользователя из users.username
+            p.title,
+            p.description,
+            p.created_at,
+            p.updated_at
+        FROM %s p
+        JOIN users u ON p.user_id = u.id`, postsTable)
+
+	// Выполняем запрос для получения всех постов
+	// Queryx используется, так как мы ожидаем несколько строк в ответе
+	err := repository.db.Select(&posts, query)
 	// Возвращаем список постов и nil как ошибку
 	return posts, err
 }

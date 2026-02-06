@@ -17,8 +17,12 @@ func (service *PostsService) CreatePost(post domains.PostsDomain) (int, error) {
 	return service.repository.CreatePost(post)
 }
 
-func (service *PostsService) GetPosts(userId int) ([]repository.PostModel, error) {
-	return service.repository.GetPosts(userId)
+func (service *PostsService) GetMyPosts(userId int) ([]repository.PostModel, error) {
+	return service.repository.GetMyPosts(userId)
+}
+
+func (service *PostsService) GetAllPosts() ([]repository.PostModel, error) {
+	return service.repository.GetAllPosts()
 }
 
 func (service *PostsService) DeletePost(postId int, userId int) error {

@@ -53,8 +53,8 @@ func New() (*App, error) {
 	// Инициализация конфига роутера
 	handlers.ConfigInit(srv.Router())
 
-	authHandler.InitRouters(srv.Router())
-	postsHandler.InitRouters(srv.Router())
+	authHandler.InitRouters(srv.Router())  // инициализация маршрутов для auth
+	postsHandler.InitRouters(srv.Router()) // инициализация маршрутов для posts
 
 	return &App{
 		server: srv,

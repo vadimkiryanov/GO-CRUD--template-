@@ -36,12 +36,18 @@ func (handler *Handler) getAllPosts(ctx *gin.Context) {
 	// Получаем пользователя из JWT
 	userId, _, err := core.ParseToken(ctx.GetHeader("Authorization"))
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		// Если токен отсутствует или некорректен, возвращаем все посты
+		posts, err := handler.services.GetAllPosts()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"posts": posts})
 		return
 	}
 
 	// Получаем все посты пользователя
-	posts, err := handler.services.GetPosts(userId)
+	posts, err := handler.services.GetMyPosts(userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
