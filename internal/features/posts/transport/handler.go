@@ -3,9 +3,11 @@ package transport
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core"
+	"github.com/vadimkiryanov/GO-CRUD/internal/features/posts/repository"
 	"github.com/vadimkiryanov/GO-CRUD/internal/features/posts/service"
 )
 
@@ -22,10 +24,11 @@ func NewHandler(services *service.PostsService) *Handler {
 func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
 	auth := router.Group("/posts")
 	{
-		auth.GET("/all", h.getAllPosts)          // получение всех постов
-		auth.POST("/create", h.createPost)       // создание поста
-		auth.PUT("/update/:id", h.updatePost)    // обновление поста
-		auth.DELETE("/delete/:id", h.deletePost) // удаление поста
+		auth.GET("/all", h.getAllPosts)                         // получение всех постов (без пагинации)
+		auth.GET("/all-paginated", h.getAllPostsWithPagination) // получение постов с пагинацией
+		auth.POST("/create", h.createPost)                      // создание поста
+		auth.PUT("/update/:id", h.updatePost)                   // обновление поста
+		auth.DELETE("/delete/:id", h.deletePost)                // удаление поста
 	}
 
 	return router
@@ -41,6 +44,37 @@ func (handler *Handler) getAllPosts(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"posts": posts})
 
+}
+
+func (handler *Handler) getAllPostsWithPagination(ctx *gin.Context) {
+	// Получаем параметры пагинации из запроса
+	page := ctx.DefaultQuery("page", "1")
+	limit := ctx.DefaultQuery("limit", "10")
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil || pageInt < 1 {
+		pageInt = 1
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil || limitInt < 1 || limitInt > 100 {
+		limitInt = 10
+	}
+
+	offset := (pageInt - 1) * limitInt
+
+	params := repository.PaginationParams{
+		Limit:  limitInt,
+		Offset: offset,
+	}
+
+	result, err := handler.services.GetAllPostsWithPagination(params)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, result)
 }
 
 func (handler *Handler) createPost(ctx *gin.Context) {

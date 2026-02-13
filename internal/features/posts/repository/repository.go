@@ -22,6 +22,7 @@ type PostsRepository interface {
 	CreatePost(post domains.PostsDomain) (int, error)
 	GetMyPosts(userId int) ([]PostModel, error)
 	GetAllPosts() ([]PostModel, error)
+	GetAllPostsWithPagination(params PaginationParams) (PaginatedResult, error)
 	DeletePost(postId int, userId int) error
 	UpdatePost(postId int, userId int, post domains.PostsDomain) error
 }
@@ -114,6 +115,50 @@ func (repository *PostsPostgres) GetAllPosts() ([]PostModel, error) {
 	err := repository.db.Select(&posts, query)
 	// Возвращаем список постов и nil как ошибку
 	return posts, err
+}
+
+// Получает все посты из базы данных с пагинацией
+func (repository *PostsPostgres) GetAllPostsWithPagination(params PaginationParams) (PaginatedResult, error) {
+	var posts []PostModel
+
+	// Формируем SQL запрос для получения постов с лимитом и смещением
+	query := fmt.Sprintf(`
+        SELECT
+            p.id,
+            p.user_id,
+            u.username as author,
+            p.title,
+            p.description,
+            p.created_at,
+            p.updated_at
+        FROM %s p
+        JOIN users u ON p.user_id = u.id
+        ORDER BY p.created_at DESC
+        LIMIT $1 OFFSET $2`, postsTable)
+
+	err := repository.db.Select(&posts, query, params.Limit, params.Offset)
+	if err != nil {
+		return PaginatedResult{}, err
+	}
+
+	// Получаем общее количество постов
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM %s p JOIN users u ON p.user_id = u.id`, postsTable)
+	var total int64
+	err = repository.db.Get(&total, countQuery)
+	if err != nil {
+		return PaginatedResult{}, err
+	}
+
+	// Вычисляем количество страниц
+	totalPages := int((total + int64(params.Limit) - 1) / int64(params.Limit))
+
+	return PaginatedResult{
+		Data:       posts,
+		Total:      total,
+		Page:       (params.Offset / params.Limit) + 1,
+		Limit:      params.Limit,
+		TotalPages: totalPages,
+	}, nil
 }
 
 func (repository *PostsPostgres) DeletePost(postId int, userId int) error {

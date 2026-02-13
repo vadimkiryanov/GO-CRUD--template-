@@ -32,3 +32,7 @@ func (service *PostsService) DeletePost(postId int, userId int) error {
 func (service *PostsService) UpdatePost(postId int, userId int, post domains.PostsDomain) error {
 	return service.repository.UpdatePost(postId, userId, post)
 }
+
+func (service *PostsService) GetAllPostsWithPagination(params repository.PaginationParams) (repository.PaginatedResult, error) {
+	return service.repository.GetAllPostsWithPagination(params)
+}
