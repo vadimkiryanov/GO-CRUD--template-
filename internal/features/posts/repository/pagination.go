@@ -11,6 +11,8 @@ type PaginatedResult struct {
 
 // PaginationParams содержит параметры для пагинации
 type PaginationParams struct {
-	Limit  int
-	Offset int
+	Limit     int
+	Offset    int
+	SortBy    string
+	SortOrder string
 }

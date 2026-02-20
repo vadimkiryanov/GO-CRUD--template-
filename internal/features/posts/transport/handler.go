@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/vadimkiryanov/GO-CRUD/internal/core"
@@ -35,21 +36,35 @@ func (h *Handler) InitRouters(router *gin.Engine) *gin.Engine {
 }
 
 func (handler *Handler) getAllPosts(ctx *gin.Context) {
-	// Получаем все посты пользователя
-	posts, err := handler.services.GetAllPosts()
+	// Получаем параметры сортировки из запроса
+	sortBy := ctx.DefaultQuery("sortBy", "created_at")
+	sortOrder := ctx.DefaultQuery("sortOrder", "DESC")
+
+	// Преобразуем sortOrder к верхнему регистру для проверки
+	if sortOrder != "" {
+		sortOrder = strings.ToUpper(sortOrder)
+		// Проверяем, что sortOrder равен либо ASC, либо DESC
+		if sortOrder != "ASC" && sortOrder != "DESC" {
+			sortOrder = ""
+		}
+	}
+
+	// Получаем все посты с учетом параметров сортировки
+	posts, err := handler.services.GetAllPosts(sortBy, sortOrder)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"posts": posts})
-
 }
 
 func (handler *Handler) getAllPostsWithPagination(ctx *gin.Context) {
 	// Получаем параметры пагинации из запроса
 	page := ctx.DefaultQuery("page", "1")
 	limit := ctx.DefaultQuery("limit", "10")
+	sortBy := ctx.DefaultQuery("sortBy", "")
+	sortOrder := ctx.DefaultQuery("sortOrder", "")
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil || pageInt < 1 {
@@ -61,11 +76,21 @@ func (handler *Handler) getAllPostsWithPagination(ctx *gin.Context) {
 		limitInt = 10
 	}
 
+	// Проверяем и нормализуем параметры сортировки
+	if sortOrder != "" {
+		sortOrder = strings.ToUpper(sortOrder)
+		if sortOrder != "ASC" && sortOrder != "DESC" {
+			sortOrder = ""
+		}
+	}
+
 	offset := (pageInt - 1) * limitInt
 
 	params := repository.PaginationParams{
-		Limit:  limitInt,
-		Offset: offset,
+		Limit:     limitInt,
+		Offset:    offset,
+		SortBy:    sortBy,
+		SortOrder: sortOrder,
 	}
 
 	result, err := handler.services.GetAllPostsWithPagination(params)

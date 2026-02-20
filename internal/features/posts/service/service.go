@@ -21,8 +21,8 @@ func (service *PostsService) GetMyPosts(userId int) ([]repository.PostModel, err
 	return service.repository.GetMyPosts(userId)
 }
 
-func (service *PostsService) GetAllPosts() ([]repository.PostModel, error) {
-	return service.repository.GetAllPosts()
+func (service *PostsService) GetAllPosts(sortBy string, sortOrder string) ([]repository.PostModel, error) {
+	return service.repository.GetAllPosts(sortBy, sortOrder)
 }
 
 func (service *PostsService) DeletePost(postId int, userId int) error {

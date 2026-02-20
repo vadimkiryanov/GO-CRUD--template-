@@ -21,7 +21,7 @@ type PostsPostgres struct {
 type PostsRepository interface {
 	CreatePost(post domains.PostsDomain) (int, error)
 	GetMyPosts(userId int) ([]PostModel, error)
-	GetAllPosts() ([]PostModel, error)
+	GetAllPosts(sortBy string, sortOrder string) ([]PostModel, error)
 	GetAllPostsWithPagination(params PaginationParams) (PaginatedResult, error)
 	DeletePost(postId int, userId int) error
 	UpdatePost(postId int, userId int, post domains.PostsDomain) error
@@ -92,11 +92,19 @@ func (repository *PostsPostgres) GetMyPosts(userId int) ([]PostModel, error) {
 }
 
 // Получает все посты из базы данных (без фильтрации по пользователю)
-func (repository *PostsPostgres) GetAllPosts() ([]PostModel, error) {
+func (repository *PostsPostgres) GetAllPosts(sortBy string, sortOrder string) ([]PostModel, error) {
 	// Переменная для хранения списка постов
 	var posts []PostModel
 
-	// Формируем SQL запрос для получения всех постов
+	// Устанавливаем значения по умолчанию, если параметры не указаны
+	if sortBy == "" {
+		sortBy = "created_at"
+	}
+	if sortOrder == "" || (sortOrder != "ASC" && sortOrder != "DESC") {
+		sortOrder = "DESC"
+	}
+
+	// Формируем SQL запрос для получения всех постов с сортировкой
 	// JOIN с users для получения имени автора
 	query := fmt.Sprintf(`
         SELECT
@@ -108,7 +116,8 @@ func (repository *PostsPostgres) GetAllPosts() ([]PostModel, error) {
             p.created_at,
             p.updated_at
         FROM %s p
-        JOIN users u ON p.user_id = u.id`, postsTable)
+        JOIN users u ON p.user_id = u.id
+        ORDER BY p.%s %s`, postsTable, sortBy, sortOrder)
 
 	// Выполняем запрос для получения всех постов
 	// Queryx используется, так как мы ожидаем несколько строк в ответе
@@ -121,7 +130,17 @@ func (repository *PostsPostgres) GetAllPosts() ([]PostModel, error) {
 func (repository *PostsPostgres) GetAllPostsWithPagination(params PaginationParams) (PaginatedResult, error) {
 	var posts []PostModel
 
-	// Формируем SQL запрос для получения постов с лимитом и смещением
+	// Устанавливаем значения по умолчанию, если параметры сортировки не указаны
+	sortBy := params.SortBy
+	if sortBy == "" {
+		sortBy = "created_at"
+	}
+	sortOrder := params.SortOrder
+	if sortOrder == "" || (sortOrder != "ASC" && sortOrder != "DESC") {
+		sortOrder = "DESC"
+	}
+
+	// Формируем SQL запрос для получения постов с лимитом, смещением и сортировкой
 	query := fmt.Sprintf(`
         SELECT
             p.id,
@@ -133,8 +152,8 @@ func (repository *PostsPostgres) GetAllPostsWithPagination(params PaginationPara
             p.updated_at
         FROM %s p
         JOIN users u ON p.user_id = u.id
-        ORDER BY p.created_at DESC
-        LIMIT $1 OFFSET $2`, postsTable)
+        ORDER BY p.%s %s
+        LIMIT $1 OFFSET $2`, postsTable, sortBy, sortOrder)
 
 	err := repository.db.Select(&posts, query, params.Limit, params.Offset)
 	if err != nil {
