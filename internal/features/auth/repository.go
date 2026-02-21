@@ -51,7 +51,7 @@ func (repos *AuthPostgres) GetUser(username, password string) (User, error) {
 	var userFromDb User
 
 	// Формируем SQL запрос
-	query := fmt.Sprintf("SELECT id FROM %s WHERE username=$1 AND password_hash=$2", usersTable)
+	query := fmt.Sprintf("SELECT id, username FROM %s WHERE username=$1 AND password_hash=$2", usersTable)
 	err := repos.db.Get(&userFromDb, query, username, password)
 
 	return userFromDb, err // Возвращаем полученного пользователя и возможную ошибку

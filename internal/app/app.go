@@ -17,6 +17,10 @@ import (
 	ratingsR "github.com/vadimkiryanov/GO-CRUD/internal/features/ratings/repository"
 	ratingsS "github.com/vadimkiryanov/GO-CRUD/internal/features/ratings/service"
 	ratingsT "github.com/vadimkiryanov/GO-CRUD/internal/features/ratings/transport"
+
+	commentsR "github.com/vadimkiryanov/GO-CRUD/internal/features/comments/repository"
+	commentsS "github.com/vadimkiryanov/GO-CRUD/internal/features/comments/service"
+	commentsT "github.com/vadimkiryanov/GO-CRUD/internal/features/comments/transport"
 )
 
 type App struct {
@@ -58,13 +62,19 @@ func New() (*App, error) {
 	ratingsService := ratingsS.NewService(ratingsRepo)
 	ratingsHandler := ratingsT.NewHandler(ratingsService)
 
+	// Инициализация зависимостей comments
+	commentsRepo := commentsR.NewRepository(db)
+	commentsService := commentsS.NewService(commentsRepo)
+	commentsHandler := commentsT.NewHandler(commentsService)
+
 	// Регистрация маршрутов
 	// Инициализация конфига роутера
 	handlers.ConfigInit(srv.Router())
 
-	authHandler.InitRouters(srv.Router())    // инициализация маршрутов для auth
-	postsHandler.InitRouters(srv.Router())   // инициализация маршрутов для posts
-	ratingsHandler.InitRouters(srv.Router()) // инициализация маршрутов для ratings
+	authHandler.InitRouters(srv.Router())      // инициализация маршрутов для auth
+	postsHandler.InitRouters(srv.Router())     // инициализация маршрутов для posts
+	ratingsHandler.InitRouters(srv.Router())   // инициализация маршрутов для ratings
+	commentsHandler.InitRouters(srv.Router())  // инициализация маршрутов для comments
 
 	return &App{
 		server: srv,
