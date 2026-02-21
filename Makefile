@@ -12,48 +12,48 @@ run-all: run-db-check migrate-up run-server
 # Check if DB container exists and start it if needed
 run-db-check:
 	@if docker ps -q -f name=$(DB_CONTAINER_NAME) | grep -q . ; then \
-		echo "Контейнер $(DB_CONTAINER_NAME) уже запущен..."; \
+		echo "Container $(DB_CONTAINER_NAME) is already running..."; \
 	else \
 		if docker ps -a --format "table {{.Names}}" | grep -q "^$(DB_CONTAINER_NAME)$$"; then \
-			echo "Контейнер $(DB_CONTAINER_NAME) остановлен, запускаем его..."; \
+			echo "Container $(DB_CONTAINER_NAME) is stopped, starting..."; \
 			docker start $(DB_CONTAINER_NAME); \
 		else \
-			echo "Контейнер $(DB_CONTAINER_NAME) не существует, создаем новый..."; \
+			echo "Container $(DB_CONTAINER_NAME) does not exist, creating new..."; \
 			make run-db; \
 		fi \
 	fi
 
 clean-db:
-	@echo "Остановка и удаление контейнера PostgreSQL..."
+	@echo "Stopping and removing PostgreSQL container..."
 	-docker stop $(DB_CONTAINER_NAME) || true
 	-docker rm $(DB_CONTAINER_NAME) || true
 run-db:
-	@echo "Проверка существующего контейнера..."
+	@echo "Checking existing container..."
 	@if docker ps -a --format "table {{.Names}}" | grep -q "^$(DB_CONTAINER_NAME)$$"; then \
-		echo "Контейнер $(DB_CONTAINER_NAME) уже существует, останавливаем его..."; \
+		echo "Container $(DB_CONTAINER_NAME) already exists, stopping..."; \
 		docker stop $(DB_CONTAINER_NAME); \
 		docker rm $(DB_CONTAINER_NAME); \
 	fi
-	@echo "Запуск контейнера PostgreSQL с Docker..."
+	@echo "Starting PostgreSQL container with Docker..."
 	docker run --name=$(DB_CONTAINER_NAME) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -p $(DB_PORT):5432 -d postgres
 
 run-db-with-delete:
-	@echo "Проверка существующего контейнера..."
+	@echo "Checking existing container..."
 	@if docker ps -a --format "table {{.Names}}" | grep -q "^$(DB_CONTAINER_NAME)$$"; then \
-		echo "Контейнер $(DB_CONTAINER_NAME) уже существует, останавливаем его..."; \
+		echo "Container $(DB_CONTAINER_NAME) already exists, stopping..."; \
 		docker stop $(DB_CONTAINER_NAME); \
 		docker rm $(DB_CONTAINER_NAME); \
 	fi
-	@echo "Запуск контейнера PostgreSQL с Docker..."
+	@echo "Starting PostgreSQL container with Docker..."
 	docker run --name=$(DB_CONTAINER_NAME) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -p $(DB_PORT):5432 -d --rm postgres
 
 migrate-up:
-	@echo "Запуск миграций..."
-	@echo "Ожидание готовности базы данных..."
-	@timeout 30 bash -c 'until docker exec $(DB_CONTAINER_NAME) pg_isready > /dev/null 2>&1; do sleep 1; done' || echo "База данных может быть недоступна"
+	@echo "Running migrations..."
+	@echo "Waiting for database readiness..."
+	@timeout 30 bash -c 'until docker exec $(DB_CONTAINER_NAME) pg_isready > /dev/null 2>&1; do sleep 1; done' || echo "Database may be unavailable"
 	@sleep 2  # Additional wait time for full readiness
 	migrate -database "postgres://postgres:$(DB_PASSWORD)@localhost:$(DB_PORT)/$(DB_NAME)?sslmode=disable" -path ./migrations up
 
 run-server: 
-	@echo "Запуск сервера..."
+	@echo "Starting server..."
 	go run ./cmd/main.go
