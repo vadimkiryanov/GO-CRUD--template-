@@ -71,10 +71,10 @@ func New() (*App, error) {
 	// Инициализация конфига роутера
 	handlers.ConfigInit(srv.Router())
 
-	authHandler.InitRouters(srv.Router())      // инициализация маршрутов для auth
-	postsHandler.InitRouters(srv.Router())     // инициализация маршрутов для posts
-	ratingsHandler.InitRouters(srv.Router())   // инициализация маршрутов для ratings
-	commentsHandler.InitRouters(srv.Router())  // инициализация маршрутов для comments
+	authHandler.InitRouters(srv.Router())     // инициализация маршрутов для auth
+	postsHandler.InitRouters(srv.Router())    // инициализация маршрутов для posts
+	ratingsHandler.InitRouters(srv.Router())  // инициализация маршрутов для ratings
+	commentsHandler.InitRouters(srv.Router()) // инициализация маршрутов для comments
 
 	return &App{
 		server: srv,

@@ -27,18 +27,15 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	if err := application.Run(); err != nil {
-		logrus.Fatal(err)
-	}
-
-	// Сервер запущен
-	logrus.Info("Сервер запущен на порту: ", viper.GetString("port"))
-
 	// Запуск сервера
 	// если для viper.GetString key == неверное значение, то запустятся дефолтные настройки
 	if err := application.Run(); err != nil {
 		logrus.Fatalf("ошибка при запуске сервера: %s", err.Error())
 	}
+
+		// Сервер запущен
+	logrus.Info("Сервер запущен на порту: ", viper.GetString("port"))
+
 
 }
 
